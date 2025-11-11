@@ -1,9 +1,5 @@
 ﻿################################################################################
 # Este archivo .gitignore ha sido creado automáticamente por Microsoft(R) Visual Studio.
 ################################################################################
-
-/.vs/PAKETS/copilot-chat/57a1f65d/sessions
-/.vs/PAKETS/CopilotIndices/17.14.1290.42047
-/.vs
 /bin/Debug
 /Noto_Color_Emoji
