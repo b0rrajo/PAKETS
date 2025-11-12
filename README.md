@@ -65,4 +65,4 @@ Tambien le invitamos a que nos comparta los errores que presente el programa abr
 >El creador NO se hace responsable de los daños producidos por modificaciones de terceras personas no autorizadas y recomienda encarecidamente que: Si no conoce a quien ha duplicado y modificado el programa, no está seguro de descargar el programa de un repositorio forkeado o tiene dudas de la integridad de lo que ha descargado. PORFAVOR, acceda a este repositorio y descargue de nuevo el programa.
 
 ## 5 | HISTORIAL DE VERSIONES Y NOTAS DE ACTUALIZACIÓN:
-Puede consultar las notas de actualizacion y el historial de versiones [haciendo click aquí]().
+Puede consultar las notas de actualizacion y el historial de versiones [haciendo click aquí](https://github.com/b0rrajo/PAKETS/blob/master/CHANGELOG.md).
