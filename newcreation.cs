@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -380,7 +382,128 @@ namespace PAKETS
             }
         }
 
-        // Recolecta pares (etiqueta, valor) desde controles dentro de parent
+        // Crear carpeta en Documentos y guardar <Razón_Social>.pakets y copias de hasta 2 imágenes
+        private void SavePaketsPackage()
+        {
+            if (steps == null || steps.Count == 0) throw new InvalidOperationException("Pasos no inicializados.");
+
+            // Obtener datos del paso 1 (empresa)
+            var step1 = steps[0];
+            var kvsStep1 = CollectKeyValuesFromControls(step1);
+
+            // Intentar averiguar "Razón Social"
+            string razon = kvsStep1
+                .Select(kv => new { Key = kv.Key ?? "", Value = kv.Value ?? "" })
+                .FirstOrDefault(kv => kv.Key.IndexOf("razón", StringComparison.OrdinalIgnoreCase) >= 0
+                                    || kv.Key.IndexOf("razon", StringComparison.OrdinalIgnoreCase) >= 0)?.Value;
+
+            if (string.IsNullOrWhiteSpace(razon))
+            {
+                // fallback: primera entrada no vacía
+                razon = kvsStep1.Select(kv => kv.Value).FirstOrDefault(v => !string.IsNullOrWhiteSpace(v)) ?? "PAKETS_Profile";
+            }
+
+            // Sanear nombre para carpeta/archivo
+            string sanitized = SanitizeFileName(razon);
+            string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string folderPath = Path.Combine(documents, sanitized);
+
+            Directory.CreateDirectory(folderPath);
+
+            // Construir contenido del .pakets (texto simple UTF8)
+            var sb = new StringBuilder();
+            sb.AppendLine("PAKETS Profile");
+            sb.AppendLine("Generado: " + DateTime.Now.ToString("s"));
+            sb.AppendLine();
+
+            for (int i = 0; i < steps.Count; i++)
+            {
+                sb.AppendLine($"== Paso {i + 1} ==");
+                var kvs = CollectKeyValuesFromControls(steps[i]);
+                foreach (var kv in kvs)
+                {
+                    sb.AppendLine($"{kv.Key}: {kv.Value}");
+                }
+
+                // Si paso 2 contiene tabla con textboxes, añadir sus valores (compatibilidad)
+                if (i == 1)
+                {
+                    var tlp = GetAllControls(steps[i]).OfType<TableLayoutPanel>().FirstOrDefault();
+                    if (tlp != null)
+                    {
+                        int headerRows = tlp.Controls.Find("colHeader_0", true).Any() ? 1 : 0;
+                        var textboxes = tlp.Controls.OfType<TextBox>().Where(tb => tlp.GetRow(tb) >= headerRows).ToArray();
+                        if (textboxes.Length > 0)
+                        {
+                            sb.AppendLine("-- Tabla --");
+                            foreach (var tb in textboxes)
+                            {
+                                sb.AppendLine($"Fila{tlp.GetRow(tb)}-Col{tlp.GetColumn(tb)}: {tb.Text}");
+                            }
+                        }
+                    }
+                }
+
+                sb.AppendLine();
+            }
+
+            // Guardar archivo .pakets
+            string paketsFile = Path.Combine(folderPath, sanitized + ".pakets");
+            File.WriteAllText(paketsFile, sb.ToString(), Encoding.UTF8);
+
+            // Copiar hasta 2 imágenes encontradas en los pasos (preferir step1 images)
+            var images = GetAllControls(step1).OfType<PictureBox>().Select(pb => pb.Image).Where(img => img != null).Cast<Image>().ToList();
+
+            // Si no hay 2 en step1 buscar en otros pasos
+            if (images.Count < 2)
+            {
+                var more = steps.SelectMany(s => GetAllControls(s).OfType<PictureBox>().Select(pb => pb.Image)).Where(img => img != null).Cast<Image>();
+                foreach (var im in more)
+                {
+                    if (images.Count >= 2) break;
+                    if (!images.Contains(im)) images.Add(im);
+                }
+            }
+
+            for (int idx = 0; idx < images.Count && idx < 2; idx++)
+            {
+                var img = images[idx];
+                string imgName = Path.Combine(folderPath, $"image{idx + 1}.png");
+                // Guardar clon para evitar bloqueo del Image original
+                using (var bmp = new Bitmap(img))
+                {
+                    bmp.Save(imgName, ImageFormat.Png);
+                }
+            }
+        }
+
+        private string SanitizeFileName(string name)
+        {
+            var invalid = Path.GetInvalidFileNameChars();
+            var sb = new StringBuilder();
+            foreach (var c in name)
+            {
+                if (invalid.Contains(c)) sb.Append('_');
+                else sb.Append(c);
+            }
+            var result = sb.ToString().Trim();
+            if (string.IsNullOrWhiteSpace(result)) result = "PAKETS_Profile";
+            return result;
+        }
+
+        // Helper para recorrer recursivamente controles hijos
+        private IEnumerable<Control> GetAllControls(Control parent)
+        {
+            if (parent == null) yield break;
+            foreach (Control c in parent.Controls)
+            {
+                yield return c;
+                foreach (var child in GetAllControls(c))
+                    yield return child;
+            }
+        }
+
+        // Reutiliza la función existente del archivo: recoge pares (etiqueta, valor) desde controles dentro de parent
         private List<KeyValuePair<string, string>> CollectKeyValuesFromControls(Control parent)
         {
             var list = new List<KeyValuePair<string, string>>();
@@ -441,16 +564,25 @@ namespace PAKETS
 
         private void label1_Click(object sender, EventArgs e)
         {
-
+            // El diseñador requiere este manejador. Mantener vacío o añadir la lógica deseada.
         }
 
-        // El botón "accept" actúa como Siguiente/Finalizar o como Aceptar de la bienvenida
+        // Agrego el manejador faltante requerido por el diseñador (label2.Click)
+        private void label2_Click(object sender, EventArgs e)
+        {
+            // Handler vacío para evitar error en tiempo de diseño.
+        }
+
+        private void cancel_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
         private void accept_Click(object sender, EventArgs e)
         {
             // Si los pasos no están inicializados, este botón es "Aceptar" de la bienvenida:
             if (steps == null || steps.Count == 0)
             {
-                // Inicializar y mostrar los pasos del asistente
                 InitializeSteps();
                 return;
             }
@@ -461,31 +593,18 @@ namespace PAKETS
             }
             else
             {
-                // Último paso: ejecutar acción de finalización
-                MessageBox.Show("Asistente completado.", "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // Último paso: crear archivo .pakets y cerrar asistente
+                try
+                {
+                    SavePaketsPackage();
+                    MessageBox.Show("Perfil guardado correctamente.", "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al guardar el perfil: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
                 this.Close();
-            }
-        }
-
-        private void cancel_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
-
-        private void label2_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        // Helper para recorrer recursivamente controles hijos
-        private IEnumerable<Control> GetAllControls(Control parent)
-        {
-            if (parent == null) yield break;
-            foreach (Control c in parent.Controls)
-            {
-                yield return c;
-                foreach (var child in GetAllControls(c))
-                    yield return child;
             }
         }
     }
