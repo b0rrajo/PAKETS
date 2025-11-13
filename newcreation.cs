@@ -406,8 +406,16 @@ namespace PAKETS
             // Sanear nombre para carpeta/archivo
             string sanitized = SanitizeFileName(razon);
             string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            string folderPath = Path.Combine(documents, sanitized);
 
+            // --- NUEVO: asegurar existencia de carpeta central "PAKETS" en Documentos ---
+            string paketsRoot = Path.Combine(documents, "PAKETS");
+            if (!Directory.Exists(paketsRoot))
+            {
+                Directory.CreateDirectory(paketsRoot);
+            }
+
+            // Carpeta del perfil dentro de Documents\PAKETS\<Razón_Social>
+            string folderPath = Path.Combine(paketsRoot, sanitized);
             Directory.CreateDirectory(folderPath);
 
             // Construir contenido del .pakets (texto simple UTF8)
@@ -447,7 +455,7 @@ namespace PAKETS
                 sb.AppendLine();
             }
 
-            // Guardar archivo .pakets
+            // Guardar archivo .pakets dentro de Documents\PAKETS\<Razón_Social>\
             string paketsFile = Path.Combine(folderPath, sanitized + ".pakets");
             File.WriteAllText(paketsFile, sb.ToString(), Encoding.UTF8);
 

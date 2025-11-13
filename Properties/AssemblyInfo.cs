@@ -30,6 +30,6 @@ using System.Runtime.InteropServices;
 //      Número de compilación
 //      Revisión
 //
-[assembly: AssemblyVersion("0.0.8.12")]
-[assembly: AssemblyFileVersion("0.0.8.12")]
+[assembly: AssemblyVersion("0.0.8.14")]
+[assembly: AssemblyFileVersion("0.0.8.14")]
 [assembly: NeutralResourcesLanguage("es-ES")]

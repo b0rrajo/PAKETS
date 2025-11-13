@@ -20,3 +20,4 @@ C:\Users\danie\source\repos\PAKETS\obj\Debug\PAKETS.TrustInfo.xml
 C:\Users\danie\source\repos\PAKETS\obj\Debug\PAKETS.newcreationstep3.resources
 C:\Users\danie\source\repos\PAKETS\obj\Debug\PAKETS.newcreationstep2.resources
 C:\Users\danie\source\repos\PAKETS\obj\Debug\PAKETS.newcreationstep1.resources
+C:\Users\danie\source\repos\PAKETS\obj\Debug\PAKETS.mainwelcomescreen.resources
