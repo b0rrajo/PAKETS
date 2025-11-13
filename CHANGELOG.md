@@ -17,6 +17,7 @@ En esta página puede encontrar un historial de las versiones de PAKETS y sus re
 ### 0.0.8.14 - ALPHA
     - Actualizada la estructura de carpetas para un estilo más profesional
     - Implantación de un mensaje de bienvenida en la ventana principal del programa
+---
 ### 0.0.8.13 - ALPHA
     - Se ha implementado la configuración de creación de perfiles y arreglado el asistente de perfiles.
 ---
