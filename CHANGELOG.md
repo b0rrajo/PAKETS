@@ -2,7 +2,7 @@
 En esta página puede encontrar un historial de las versiones de PAKETS y sus respectivas notas de actualización.
 
 ## INFORMACIÓN IMPORTANTE
->- La versión actual de PAKETS es la 0.0.8.13
+>- La versión actual de PAKETS es la 0.0.8.14
 >
 >- Toda la información acerca del estado de soporte de actualizaciones de PAKETS puede consultarse [aquí](https://github.com/b0rrajo/PAKETS/blob/master/SECURITY.md)
 
